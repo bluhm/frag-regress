@@ -101,6 +101,10 @@ run-regress-stack-frag_mf0long.py:
 	# the stack allows fragments with data behind a fragment without MF
 	@echo DISABLED
 
+run-regress-stack-frag_mf0short.py:
+	# the stack allows fragments without MF ending before other fragments
+	@echo DISABLED
+
 .for sp in stack pf
 
 # Ping all addresses.  This ensures that the ip addresses are configured

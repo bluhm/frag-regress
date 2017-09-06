@@ -1,10 +1,10 @@
 #!/usr/local/bin/python2.7
 
-print "ping fragment that overlaps longer than the last fragment without MF"
+print "ping fragment without MF that overlaps the last fragment at beginning"
 
-#      |---------|
-#           |XXXXXXXXX|
-# |----|
+#           |---------|
+#      |XXXXXXXXX|
+# |---------|
 
 import os
 from addr import *
@@ -12,18 +12,18 @@ from scapy.all import *
 
 pid=os.getpid()
 eid=pid & 0xffff
-payload="ABCDEFGHIJKLMNOP"
+payload="ABCDEFGHIJKLMNOPQRSTUVWX"
 dummy="0123456701234567"
 packet=IP(src=LOCAL_ADDR, dst=REMOTE_ADDR)/ \
     ICMP(type='echo-request', id=eid)/payload
 frag=[]
 fid=pid & 0xffff
-frag.append(IP(src=LOCAL_ADDR, dst=REMOTE_ADDR, proto=1, id=fid, frag=1)/ \
-    str(packet)[28:44])
 frag.append(IP(src=LOCAL_ADDR, dst=REMOTE_ADDR, proto=1, id=fid, frag=2)/ \
+    str(packet)[36:52])
+frag.append(IP(src=LOCAL_ADDR, dst=REMOTE_ADDR, proto=1, id=fid, frag=1)/ \
     dummy)
 frag.append(IP(src=LOCAL_ADDR, dst=REMOTE_ADDR, proto=1, id=fid, flags='MF')/ \
-    str(packet)[20:28])
+    str(packet)[20:36])
 eth=[]
 for f in frag:
 	eth.append(Ether(src=LOCAL_MAC, dst=REMOTE_MAC)/f)
