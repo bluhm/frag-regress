@@ -1,4 +1,4 @@
-#	$OpenBSD: Makefile,v 1.20 2017/07/07 23:15:27 bluhm Exp $
+#	$OpenBSD$
 
 # The following ports must be installed:
 #
@@ -25,7 +25,7 @@ regress:
 # Set up machines: LOCAL REMOTE
 # LOCAL is the machine where this makefile is running.
 # REMOTE is running OpenBSD with or without pf to test fragment reassemly
-# Enable echo udp6 in inetd.conf on REMOTE to test UDP fragments.
+# Enable echo udp in inetd.conf on REMOTE to test UDP fragments.
 # REMOTE_SSH is used to login and enable or disable pf automatically.
 
 # Configure addresses on the machines.
@@ -35,18 +35,18 @@ LOCAL_IF ?=	em1
 LOCAL_MAC ?=	00:1b:21:0e:6e:8e
 REMOTE_MAC ?=	00:04:23:b0:68:8e
 
-LOCAL_ADDR6 ?=	fdd7:e83e:66bc:81::21
-REMOTE_ADDR6 ?=	fdd7:e83e:66bc:81::22
+LOCAL_ADDR ?=	10.188.81.21
+REMOTE_ADDR ?=	10.188.81.22
 
 REMOTE_SSH ?=
 
 .if empty (LOCAL_IF) || empty (LOCAL_MAC) || empty (REMOTE_MAC) || \
-    empty (LOCAL_ADDR6) || empty (REMOTE_ADDR6) || empty (REMOTE_SSH)
+    empty (LOCAL_ADDR) || empty (REMOTE_ADDR) || empty (REMOTE_SSH)
 .BEGIN:
 	@true
 regress:
 	@echo This tests needs a remote machine to operate on.
-	@echo LOCAL_IF LOCAL_MAC REMOTE_MAC LOCAL_ADDR6 REMOTE_ADDR6 REMOTE_SSH
+	@echo LOCAL_IF LOCAL_MAC REMOTE_MAC LOCAL_ADDR REMOTE_ADDR REMOTE_SSH
 	@echo Fill out these variables for additional tests.
 	@echo SKIPPED
 .endif
@@ -68,7 +68,7 @@ addr.py: Makefile
 	echo 'LOCAL_MAC = "${LOCAL_MAC}"' >>$@.tmp
 	echo 'REMOTE_MAC = "${REMOTE_MAC}"' >>$@.tmp
 .for var in LOCAL_ADDR REMOTE_ADDR
-	echo '${var}6 = "${${var}6}"' >>$@.tmp
+	echo '${var} = "${${var}}"' >>$@.tmp
 .endfor
 	mv $@.tmp $@
 
@@ -95,39 +95,39 @@ stamp-pf: addr.py pf.conf
 	date >$@
 
 REGRESS_TARGETS =
-FRAG6_SCRIPTS !!=	cd ${.CURDIR} && ls -1 frag6*.py
+FRAG_SCRIPTS !!=	cd ${.CURDIR} && ls -1 frag*.py
 
 .for sp in stack pf
 
 # Ping all addresses.  This ensures that the ip addresses are configured
 # and all routing table are set up to allow bidirectional packet flow.
-${sp}: run-regress-${sp}-ping6
-run-regress-${sp}-ping6: stamp-${sp}
+${sp}: run-regress-${sp}-ping
+run-regress-${sp}-ping: stamp-${sp}
 	@echo '\n======== $@ ========'
 .for ip in LOCAL_ADDR REMOTE_ADDR
-	@echo Check ping6 ${ip}6:
-	ping6 -n -c 1 ${${ip}6}
+	@echo Check ping ${ip}:
+	ping -n -c 1 ${${ip}}
 .endfor
 
 # Ping all addresses again but with 5000 bytes payload.  These large
 # packets get fragmented by LOCAL and must be handled by REMOTE.
-${sp}: run-regress-${sp}-fragping6
-run-regress-${sp}-fragping6: stamp-${sp}
+${sp}: run-regress-${sp}-fragping
+run-regress-${sp}-fragping: stamp-${sp}
 	@echo '\n======== $@ ========'
 .for ip in LOCAL_ADDR REMOTE_ADDR
-	@echo Check ping6 ${ip}6:
-	ping6 -n -c 1 -s 5000 -m ${${ip}6}
+	@echo Check ping ${ip}:
+	ping -n -c 1 -s 5000 ${${ip}}
 .endfor
 
-.for s in ${FRAG6_SCRIPTS}
+.for s in ${FRAG_SCRIPTS}
 ${sp}: run-regress-${sp}-${s}
 run-regress-${sp}-${s}: addr.py stamp-${sp}
 	@echo '\n======== $@ ========'
 	${SUDO} ${PYTHON}${s}
 .endfor
 
-REGRESS_TARGETS +=	run-regress-${sp}-ping6 run-regress-${sp}-fragping6 \
-			${FRAG6_SCRIPTS:S/^/run-regress-${sp}-/}
+REGRESS_TARGETS +=	run-regress-${sp}-ping run-regress-${sp}-fragping \
+			${FRAG_SCRIPTS:S/^/run-regress-${sp}-/}
 
 .endfor
 
@@ -144,22 +144,22 @@ check-setup: check-setup-local check-setup-remote
 
 check-setup-local:
 	@echo '\n======== $@ ========'
-	ping6 -n -c 1 ${LOCAL_ADDR6}  # LOCAL_ADDR6
-	route -n get -inet6 ${LOCAL_ADDR6} |\
-	    grep -q 'flags: .*LOCAL'  # LOCAL_ADDR6
-	ping6 -n -c 1 ${REMOTE_ADDR6}  # REMOTE_ADDR6
-	route -n get -inet6 ${REMOTE_ADDR6} |\
-	    grep -q 'interface: ${LOCAL_IF}$$'  # REMOTE_ADDR6 LOCAL_IF
-	ndp -n ${REMOTE_ADDR6} |\
-	    grep -q ' ${REMOTE_MAC} '  # REMOTE_ADDR6 REMOTE_MAC
+	ping -n -c 1 ${LOCAL_ADDR}  # LOCAL_ADDR
+	route -n get -inet ${LOCAL_ADDR} |\
+	    grep -q 'flags: .*LOCAL'  # LOCAL_ADDR
+	ping -n -c 1 ${REMOTE_ADDR}  # REMOTE_ADDR
+	route -n get -inet ${REMOTE_ADDR} |\
+	    grep -q 'interface: ${LOCAL_IF}$$'  # REMOTE_ADDR LOCAL_IF
+	arp -n ${REMOTE_ADDR} |\
+	    grep -q ' ${REMOTE_MAC} '  # REMOTE_ADDR REMOTE_MAC
 
 check-setup-remote:
 	@echo '\n======== $@ ========'
-	ssh ${REMOTE_SSH} ping6 -n -c 1 ${REMOTE_ADDR6}  # REMOTE_ADDR6
-	ssh ${REMOTE_SSH} route -n get -inet6 ${REMOTE_ADDR6} |\
-	    grep -q 'flags: .*LOCAL'  # REMOTE_ADDR6
-	ssh ${REMOTE_SSH} ping6 -n -c 1 ${LOCAL_ADDR6}  # LOCAL_ADDR6
-	ssh ${REMOTE_SSH} ndp -n ${LOCAL_ADDR6} |\
-	    grep -q ' ${LOCAL_MAC} '  # LOCAL_ADDR6 LOCAL_MAC
+	ssh ${REMOTE_SSH} ping -n -c 1 ${REMOTE_ADDR}  # REMOTE_ADDR
+	ssh ${REMOTE_SSH} route -n get -inet ${REMOTE_ADDR} |\
+	    grep -q 'flags: .*LOCAL'  # REMOTE_ADDR
+	ssh ${REMOTE_SSH} ping -n -c 1 ${LOCAL_ADDR}  # LOCAL_ADDR
+	ssh ${REMOTE_SSH} arp -n ${LOCAL_ADDR} |\
+	    grep -q ' ${LOCAL_MAC} '  # LOCAL_ADDR LOCAL_MAC
 
 .include <bsd.regress.mk>
