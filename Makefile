@@ -97,6 +97,10 @@ stamp-pf: addr.py pf.conf
 REGRESS_TARGETS =
 FRAG_SCRIPTS !!=	cd ${.CURDIR} && ls -1 frag*.py
 
+run-regress-stack-frag_mf0long.py:
+	# the stack allows fragments with data behind a fragment without MF
+	@echo DISABLED
+
 .for sp in stack pf
 
 # Ping all addresses.  This ensures that the ip addresses are configured
