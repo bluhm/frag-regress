@@ -41,9 +41,9 @@ for a in ans:
 		if id != eid:
 			print "WRONG ECHO REPLY ID"
 			exit(2)
-		load=a.payload.payload.payload.load
-		print "payload=%s" % (load)
-		if load == payload:
+		data=a.payload.payload.payload.load
+		print "payload=%s" % (data)
+		if data == payload:
 			exit(0)
 		print "PAYLOAD!=%s" % (payload)
 		exit(1)

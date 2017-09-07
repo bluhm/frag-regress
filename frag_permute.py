@@ -54,9 +54,9 @@ for p in permute:
 			if id != eid:
 				print "WRONG ECHO REPLY ID"
 				exit(2)
-			load=a.payload.payload.payload.load
-			print "payload=%s" % (load)
-			if load == payload:
+			data=a.payload.payload.payload.load
+			print "payload=%s" % (data)
+			if data == payload:
 				break
 			print "PAYLOAD!=%s" % (payload)
 			exit(1)
