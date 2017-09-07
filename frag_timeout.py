@@ -38,9 +38,9 @@ for f in frag:
 
 if os.fork() == 0:
 	time.sleep(1)
-        for e in eth:
-                sendp(e, iface=LOCAL_IF)
-                time.sleep(15)
+	for e in eth:
+		sendp(e, iface=LOCAL_IF)
+		time.sleep(15)
 	os._exit(0)
 
 ans=sniff(iface=LOCAL_IF, timeout=90, filter=
