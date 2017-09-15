@@ -148,7 +148,13 @@ REGRESS_TARGETS +=	run-regress-${sp}-ping run-regress-${sp}-fragping \
 
 # After running the tests, turn on pf on remote machine.
 # This is the expected default configuration.
-REGRESS_TARGETS +=	stamp-pf
+
+cleanup-pf:
+	rm -f stamp-stack stamp-pf
+	ssh ${IPS_SSH} ${SUDO} pfctl -a regress -Fa
+	-ssh ${REMOTE_SSH} ${SUDO} pfctl -e || true
+
+REGRESS_TARGETS +=	cleanup-pf
 
 CLEANFILES +=		addr.py *.pyc *.log stamp-*
 
