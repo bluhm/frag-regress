@@ -98,14 +98,17 @@ REGRESS_TARGETS =
 FRAG_SCRIPTS !!=	cd ${.CURDIR} && ls -1 frag*.py
 
 run-regress-stack-frag_mf0long.py:
+	@echo '\n======== $@ ========'
 	# the stack allows fragments with data behind a fragment without MF
 	@echo DISABLED
 
 run-regress-stack-frag_mf0short.py:
+	@echo '\n======== $@ ========'
 	# the stack allows fragments without MF ending before other fragments
 	@echo DISABLED
 
 run-regress-stack-frag_mf1end.py:
+	@echo '\n======== $@ ========'
 	# the stack allows fragments with MF together with fragments without MF
 	@echo DISABLED
 
