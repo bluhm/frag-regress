@@ -18,13 +18,13 @@ fid=pid & 0xffff
 payload=80*"ABCDEFGHIJKLMNOP"
 
 frag=[]
-# send packet with 99 and 100 fragments
-for max in (99, 100):
+# send packets with 64 and 65 fragments
+for max in (63, 64):
 	eid = ~eid & 0xffff
 	fid = ~fid & 0xffff
 	packet=IP(src=LOCAL_ADDR, dst=REMOTE_ADDR)/ \
 	    ICMP(type='echo-request', id=eid)/payload
-	for i in range(0, max):
+	for i in range(max):
 		frag.append(IP(src=LOCAL_ADDR, dst=REMOTE_ADDR, proto=1,
 		    id=fid, frag=i, flags='MF')/str(packet)[20+i*8:28+i*8])
 	frag.append(IP(src=LOCAL_ADDR, dst=REMOTE_ADDR, proto=1,
@@ -50,7 +50,7 @@ for a in ans:
 		id=a.payload.payload.id
 		print "id=%#x" % (id)
 		if id == eid:
-			print "ECHO REPLY FROM 100 FRAGMENTS"
+			print "ECHO REPLY FROM 65 FRAGMENTS"
 			exit(1)
 		if id != ~eid & 0xffff:
 			print "WRONG ECHO REPLY ID"
@@ -61,6 +61,6 @@ for a in ans:
 			exit(2)
 		reply=True
 if not reply:
-	print "NO ECHO REPLY FROM 99 FRAGMENTS"
+	print "NO ECHO REPLY FROM 64 FRAGMENTS"
 	exit(2)
 exit(0)
