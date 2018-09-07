@@ -49,8 +49,8 @@ os.wait()
 
 for a in ans:
 	if a and a.type == ETH_P_IP and \
-	    a.payload.proto == 1 and \
 	    a.payload.frag == 0 and \
+	    a.payload.proto == 1 and \
 	    icmptypes[a.payload.payload.type] == 'echo-reply':
 		id=a.payload.payload.id
 		print "id=%#x" % (id)
@@ -59,4 +59,4 @@ for a in ans:
 			exit(2)
 		exit(0)
 print "NO ECHO REPLY"
-exit(2)
+exit(1)
