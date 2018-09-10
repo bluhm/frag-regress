@@ -112,6 +112,11 @@ run-regress-stack-frag_mf1end.py:
 	# the stack allows fragments with MF together with fragments without MF
 	@echo DISABLED
 
+run-regress-stack-frag_queuelimit.py:
+	@echo '\n======== $@ ========'
+	# the stack does not limit the amount of fragments during reassembly
+	@echo DISABLED
+
 .for sp in stack pf
 
 # Ping all addresses.  This ensures that the ip addresses are configured
